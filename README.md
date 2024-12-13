@@ -28,6 +28,7 @@ This ConfigMap will be referenced later in the StatefulSet declaration.
 ## Declare Services
 
 A Service in Kubernetes is an abstraction that defines a logical set of Pods and a policy by which to access them. It provides a stable network endpoint for accessing a set of Pods, solving several key networking challenges in a dynamic container environment and ensuring pods can always be addressed by a DNS name. Services can be of different types among which ClusterIP, which exposes the service on an internal IP within the cluster, and LoadBalancer, which creates an external load balancer (typically in cloud environments).
+
 For the MySQL primary pod we are going to define a headless service,  a special type of Service that doesn't use a cluster IP address. Instead, it returns the IP addresses of individual Pods directly, which is particularly useful for stateful applications that require direct Pod communication.
 
 Two services are defined:
