@@ -56,3 +56,18 @@ Let's create the storage class:
 ## Declare the StatefulSet
 
 Now it's time to piece together the StatefulSet.
+There is a lot to unpack in the _mysql-statefulset.yaml_ file. Let's skip the bash scripts and focus on the highlights.
+
+- `init-containers`: it starts up and runs to completion before any other container.
+  - `init-mysql`: Assigns a unique MySQL server ID starting from 100 for the first pod and increments by one, as well as copying the appropriate configuration file from the config-map. The ID and appropriate configuration file are persisted on the conf volume.
+  - `clone-mysql`: For pods after the primary, clone the database files from the preceding pod. The _xtrabackup_ tool performs the file cloning and persists the data on the data volume.
+- `spec.containers`: declares the two main containers in the pod:
+  - `mysql`: Runs the MySQL daemon and mounts the configuration in the conf volume and the data in the data volume.
+  - `xtrabackup`: A sidecar container that provides additional functionality to the mysql container. It enables data cloning and begins replication on replicas using the cloned data files.
+- `spec.volumes`:
+  - `conf`: an empty directory that will be used for dynamic configuration files.
+  - `config-map`:  a volume that references the ConfigMap _mysql_.
+ 
+conf and config-map volumes are stored on the node's local disk. They are easily re-generated if a failure occurs and don't require Persistent Volumes.
+
+- `volumeClaimTemplates`: A template for each pod that is used to create a Persistent Volume Claim. _ReadWriteOnceaccessMode_ allows the PV to be mounted by only one node at a time in read/write mode. The _storageClassName_ references the AWS EBS gp2 storage class named general that we created earlier. 
