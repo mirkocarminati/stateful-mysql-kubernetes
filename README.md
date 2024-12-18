@@ -70,4 +70,16 @@ There is a lot to unpack in the _mysql-statefulset.yaml_ file. Let's skip the ba
  
 conf and config-map volumes are stored on the node's local disk. They are easily re-generated if a failure occurs and don't require Persistent Volumes.
 
-- `volumeClaimTemplates`: A template for each pod that is used to create a Persistent Volume Claim. _ReadWriteOnceaccessMode_ allows the PV to be mounted by only one node at a time in read/write mode. The _storageClassName_ references the AWS EBS gp2 storage class named general that we created earlier. 
+- `volumeClaimTemplates`: A template for each pod that is used to create a Persistent Volume Claim. _ReadWriteOnceaccessMode_ allows the PV to be mounted by only one node at a time in read/write mode. The _storageClassName_ references the AWS EBS gp2 storage class named general that we created earlier.
+
+Now it's time to create the StatefulSets and watch the pods spin up:
+
+```
+kubectl create -f mysql-statefulset.yaml
+kubectl get pods -l app=mysql --watch
+```
+
+We can now use `kubectl get` and `kubectl describe` commands to inspect the resources we just created (services, persistent volumes, persistent volume claims and statefulsets).
+
+
+## Working with the Stateful Application
