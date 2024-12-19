@@ -83,3 +83,37 @@ We can now use `kubectl get` and `kubectl describe` commands to inspect the reso
 
 
 ## Working with the Stateful Application
+
+Let's now run some commands to check that everything is working correctly and Kubernetes can gracefully handle failures and other requests.
+
+We'll run a temporary container to use mysql to connect to the primary at _mysql-0.mysql_ and run a few SQL commands:
+
+```
+kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never --\
+  /usr/bin/mysql -h mysql-0.mysql -e "CREATE DATABASE mydb; CREATE TABLE mydb.notes (note VARCHAR(250)); INSERT INTO mydb.notes VALUES ('k8s Cloud Academy Lab');"
+```
+
+The SQL commands create a _mydb_ database with a _notes_ table in it with one record.
+
+Then we can run a query using the _mysql-read_ endpoint to select all of the notes in the table:
+
+```
+kubectl run mysql-client --image=mysql:5.7 -i -t --rm --restart=Never --\
+  /usr/bin/mysql -h mysql-read -e "SELECT * FROM mydb.notes"
+```
+
+To confirm that the requests are distributed to different pods run an SQL command that outputs the MySQL server's ID:
+
+```
+kubectl run mysql-client-loop --image=mysql:5.7 -i -t --rm --restart=Never --\
+  bash -ic "while sleep 1; do /usr/bin/mysql -h mysql-read -e 'SELECT @@server_id'; done"
+```
+
+Eventually, a request will be sent to each MySQL server worker node. 
+
+To simulate a node failure and watch it get rescheduled automatically, delete the mysql-2 pod:
+
+```
+kubectl delete pod mysql-2
+kubectl get pod mysql-2 -o wide --watch
+```
